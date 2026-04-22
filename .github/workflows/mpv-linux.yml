@@ -32,7 +32,7 @@ jobs:
         if: matrix.distro == 'fedora'
         run: |
           dnf update -y
-          dnf install -y gcc gcc-c++ git meson ninja-build yasm pkgconf-pkg-config fribidi-devel freetype-devel fontconfig-devel harfbuzz-devel libjpeg-turbo-devel openssl-devel libX11-devel libXext-devel libXv-devel libvdpau-devel libva-devel alsa-lib-devel pulseaudio-libs-devel python3 cmake nasm vulkan-headers wayland-protocols-devel wayland-devel glslang shaderc libxkbcommon-devel diffutils findutils perl
+          dnf install -y gcc gcc-c++ git meson ninja-build yasm pkgconf-pkg-config fribidi-devel freetype-devel fontconfig-devel harfbuzz-devel libjpeg-turbo-devel openssl-devel libX11-devel libXext-devel libXv-devel libvdpau-devel libva-devel alsa-lib-devel pulseaudio-libs-devel python3 cmake nasm vulkan-headers wayland-protocols-devel wayland-devel glslang-devel libshaderc-devel libxkbcommon-devel diffutils perl
       
       - name: Checkout mpv-build
         uses: actions/checkout@v4
