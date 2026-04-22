@@ -1,0 +1,64 @@
+name: Build MPV for Linux
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Build on ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: archlinux
+            image: ghcr.io/archlinux/archlinux:base-devel
+          - distro: fedora
+            image: fedora:latest
+    steps:
+      - name: Install Dependencies (Arch Linux)
+        if: matrix.distro == 'archlinux'
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed git gcc clang make meson ninja yasm pkgconf fribidi freetype2 fontconfig harfbuzz libjpeg-turbo openssl xorg-server-devel libvdpau libva alsa-lib libpulse python cmake nasm vulkan-headers wayland-protocols wayland glslang shaderc libxkbcommon perl
+      
+      - name: Install Dependencies (Fedora)
+        if: matrix.distro == 'fedora'
+        run: |
+          dnf update -y
+          dnf install -y gcc gcc-c++ git meson ninja-build yasm pkgconf-pkg-config fribidi-devel freetype-devel fontconfig-devel harfbuzz-devel libjpeg-turbo-devel openssl-devel libX11-devel libXext-devel libXv-devel libvdpau-devel libva-devel alsa-lib-devel pulseaudio-libs-devel python3 cmake nasm vulkan-headers wayland-protocols-devel wayland-devel glslang shaderc libxkbcommon-devel diffutils findutils perl
+      
+      - name: Checkout mpv-build
+        uses: actions/checkout@v4
+        with:
+          repository: mpv-player/mpv-build
+          path: mpv-build
+      
+      - name: Prepare Git Safe Directory
+        run: |
+          git config --global --add safe.directory '*' || true
+          
+      - name: Build mpv
+        run: |
+          cd mpv-build
+          ./rebuild -j$(nproc)
+          
+      - name: Package mpv
+        run: |
+          mkdir -p artifacts
+          cp mpv-build/mpv/build/mpv artifacts/mpv
+          # We'll just archive it so permissions are preserved
+          cd artifacts
+          tar -czvf ../mpv-${{ matrix.distro }}.tar.gz mpv
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpv-${{ matrix.distro }}
+          path: mpv-${{ matrix.distro }}.tar.gz
